@@ -1,19 +1,30 @@
 import { useState, useRef, useEffect } from 'react'
-import { motion, AnimatePresence, useAnimation } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 
 const SEGMENTS = [
-  { label: '10%\nOFF',        reward: { type: 'percent', amount: 10,  code: 'SPIN10',    display: '10% Off Your Order' },    color: '#3d0099' },
-  { label: 'MYSTERY\n✦',     reward: { type: 'mystery', amount: null, code: 'SPINMYSTERY', display: 'Mystery Reward' },       color: '#cc0057' },
-  { label: '15%\nOFF',        reward: { type: 'percent', amount: 15,  code: 'SPIN15',    display: '15% Off Your Order' },    color: '#5500bb' },
-  { label: 'FREE\nSHIPPING', reward: { type: 'shipping', amount: null, code: 'SPINSHIP', display: 'Free Shipping' },          color: '#7B00FF' },
-  { label: '20%\nOFF',        reward: { type: 'percent', amount: 20,  code: 'SPIN20',    display: '20% Off Your Order' },    color: '#9B00FF' },
-  { label: '10%\nOFF',        reward: { type: 'percent', amount: 10,  code: 'SPIN10',    display: '10% Off Your Order' },    color: '#3d0099' },
-  { label: '25%\nOFF',        reward: { type: 'percent', amount: 25,  code: 'SPIN25',    display: '25% Off Your Order' },    color: '#FF006E' },
-  { label: '15%\nOFF',        reward: { type: 'percent', amount: 15,  code: 'SPIN15',    display: '15% Off Your Order' },    color: '#5500bb' },
+  { label: '10%\nOFF',        reward: { type: 'percent',  amount: 10,  code: 'SPIN10',   display: '10% Off Your Order' },  color: '#3d0099' },
+  { label: 'MYSTERY\n✦',     reward: { type: 'mystery',  amount: null, code: null,       display: 'Mystery Reward' },       color: '#cc0057' },
+  { label: '15%\nOFF',        reward: { type: 'percent',  amount: 15,  code: 'SPIN15',   display: '15% Off Your Order' },  color: '#5500bb' },
+  { label: 'FREE\nSHIPPING', reward: { type: 'shipping', amount: null, code: 'SPINSHIP', display: 'Free Shipping' },        color: '#7B00FF' },
+  { label: '20%\nOFF',        reward: { type: 'percent',  amount: 20,  code: 'SPIN20',   display: '20% Off Your Order' },  color: '#9B00FF' },
+  { label: '10%\nOFF',        reward: { type: 'percent',  amount: 10,  code: 'SPIN10',   display: '10% Off Your Order' },  color: '#3d0099' },
+  { label: '25%\nOFF',        reward: { type: 'percent',  amount: 25,  code: 'SPIN25',   display: '25% Off Your Order' },  color: '#FF006E' },
+  { label: '15%\nOFF',        reward: { type: 'percent',  amount: 15,  code: 'SPIN15',   display: '15% Off Your Order' },  color: '#5500bb' },
 ]
 const N = SEGMENTS.length
 const SEG_DEG = 360 / N
+
+const MYSTERY_OPTIONS = [
+  { type: 'percent',  amount: 25,  code: 'MYSTERY25',   display: '25% Off Your Order' },
+  { type: 'shipping', amount: null, code: 'MYSTERYSHIP', display: 'Free Shipping' },
+  { type: 'percent',  amount: 20,  code: 'MYSTERY20',   display: '20% Off Your Order' },
+]
+
+function resolveMystery(seg) {
+  const pick = MYSTERY_OPTIONS[Math.floor(Math.random() * MYSTERY_OPTIONS.length)]
+  return { ...seg, reward: { ...pick, isMystery: true } }
+}
 
 // ── SVG Wheel helpers ─────────────────────────────────────────────
 function polar(cx, cy, r, deg) {
@@ -28,50 +39,17 @@ function slicePath(cx, cy, r, startDeg, endDeg) {
 }
 
 // ── Mending Heart ─────────────────────────────────────────────────
+// Uses pure setTimeout sequencing — no useAnimation / async-await to
+// avoid timing races between React state updates and animation controls.
 function MendingHeart({ onDone }) {
-  const [phase, setPhase] = useState('broken') // broken → mending → mended → done
-  const controls = useAnimation()
+  const [step, setStep] = useState(0) // 0=broken, 1=mending, 2=mended
 
-  const runMend = async () => {
-    // Wait a beat
-    await new Promise((r) => setTimeout(r, 600))
-    setPhase('mending')
-    await controls.start('mending')
-    setPhase('mended')
-    await controls.start('mended')
-    await new Promise((r) => setTimeout(r, 800))
-    setPhase('done')
-    await new Promise((r) => setTimeout(r, 400))
-    onDone()
-  }
-
-  // Auto-trigger on mount (useEffect, not useState — initializer is for state values only)
-  useEffect(() => { runMend() }, [])
-
-  const leftVariants = {
-    broken: { x: -26, rotate: -12, opacity: 1 },
-    mending: { x: 0, rotate: 0, transition: { duration: 0.9, ease: [0.34, 1.1, 0.64, 1] } },
-    mended: { x: 0, rotate: 0 },
-  }
-  const rightVariants = {
-    broken: { x: 26, rotate: 12, opacity: 1 },
-    mending: { x: 0, rotate: 0, transition: { duration: 0.9, ease: [0.34, 1.1, 0.64, 1] } },
-    mended: { x: 0, rotate: 0 },
-  }
-  const crackVariants = {
-    broken: { opacity: 1 },
-    mending: { opacity: 0, transition: { duration: 0.5, delay: 0.5 } },
-    mended: { opacity: 0 },
-  }
-  const glowVariants = {
-    broken: { opacity: 0, scale: 0.9 },
-    mending: { opacity: 0 },
-    mended: {
-      opacity: [0, 1, 0.7, 1],
-      scale: [0.9, 1.08, 1.0, 1.04],
-      transition: { duration: 0.9, ease: 'easeOut' },
-    },
-  }
+  useEffect(() => {
+    const t1 = setTimeout(() => setStep(1), 600)   // start mending
+    const t2 = setTimeout(() => setStep(2), 1700)  // fully mended
+    const t3 = setTimeout(onDone, 3300)             // hand off to reveal
+    return () => [t1, t2, t3].forEach(clearTimeout)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <motion.div
@@ -84,68 +62,78 @@ function MendingHeart({ onDone }) {
         fontFamily: 'var(--font-mono)', fontSize: '0.65rem',
         letterSpacing: '0.25em', textTransform: 'uppercase',
         color: 'var(--purple-pale)', marginBottom: 28,
+        userSelect: 'none',
       }}>
-        {phase === 'broken' || phase === 'mending' ? 'Something is happening...' : 'Something mended.'}
+        {step < 2 ? 'Something is happening...' : 'Something mended.'}
       </p>
 
       <div style={{ position: 'relative', width: 160, height: 140 }}>
         <svg
           width="160" height="140"
           viewBox="0 0 38 36"
-          style={{ overflow: 'visible', filter: phase === 'mended' ? 'drop-shadow(0 0 16px #7B00FF) drop-shadow(0 0 32px #FF006E)' : 'drop-shadow(0 0 6px rgba(123,0,255,0.5))' }}
+          style={{
+            overflow: 'visible',
+            filter: step === 2
+              ? 'drop-shadow(0 0 16px #7B00FF) drop-shadow(0 0 32px #FF006E)'
+              : 'drop-shadow(0 0 6px rgba(123,0,255,0.5))',
+            transition: 'filter 0.6s ease',
+          }}
         >
           <defs>
             <filter id="mendGlow">
               <feGaussianBlur stdDeviation="2" result="blur" />
               <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
             </filter>
-          </defs>
-
-          {/* Whole mended heart — shows when mended */}
-          <AnimatePresence>
-            {phase === 'mended' && (
-              <motion.path
-                d="M19 33 C19 33,1 21,1 12 C1 5,6 1,11 2 C14 3,17 6,19 10 C21 6,24 3,27 2 C32 1,37 5,37 12 C37 21,19 33,19 33 Z"
-                fill="url(#heartGrad)"
-                filter="url(#mendGlow)"
-                variants={glowVariants}
-                initial="broken"
-                animate={controls}
-              />
-            )}
-          </AnimatePresence>
-
-          {/* Broken halves — hidden when mended */}
-          {phase !== 'mended' && (
-            <>
-              <motion.path
-                d="M19 33 C19 33,3 22,3 13 C3 6.5,7.5 2.5,12.5 3.5 C14.5 4,16.5 5.5,18 8 L14.5 15.5 L21 19 L19 33Z"
-                fill="#7B00FF" filter="url(#mendGlow)"
-                variants={leftVariants} animate={controls} initial="broken"
-              />
-              <motion.path
-                d="M19 33 C19 33,35 22,35 13 C35 6.5,30.5 2.5,25.5 3.5 C23.5 4,21.5 5.5,20 8 L23.5 15.5 L17 19 L19 33Z"
-                fill="#9B22FF" filter="url(#mendGlow)"
-                variants={rightVariants} animate={controls} initial="broken"
-              />
-              <motion.path
-                d="M18 8 L14.5 15.5 L21 19 L17 28"
-                stroke="#000" strokeWidth="1.5" fill="none" strokeLinejoin="round"
-                variants={crackVariants} animate={controls} initial="broken"
-              />
-            </>
-          )}
-
-          <defs>
             <linearGradient id="heartGrad" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#7B00FF" />
               <stop offset="100%" stopColor="#FF006E" />
             </linearGradient>
           </defs>
+
+          {/* Whole mended heart — fades in at step 2 */}
+          <AnimatePresence>
+            {step === 2 && (
+              <motion.path
+                d="M19 33 C19 33,1 21,1 12 C1 5,6 1,11 2 C14 3,17 6,19 10 C21 6,24 3,27 2 C32 1,37 5,37 12 C37 21,19 33,19 33 Z"
+                fill="url(#heartGrad)"
+                filter="url(#mendGlow)"
+                initial={{ opacity: 0, scale: 0.85 }}
+                animate={{ opacity: 1, scale: 1.04 }}
+                transition={{ duration: 0.7, ease: 'easeOut' }}
+              />
+            )}
+          </AnimatePresence>
+
+          {/* Broken halves — visible until step 2 */}
+          {step < 2 && (
+            <>
+              <motion.path
+                d="M19 33 C19 33,3 22,3 13 C3 6.5,7.5 2.5,12.5 3.5 C14.5 4,16.5 5.5,18 8 L14.5 15.5 L21 19 L19 33Z"
+                fill="#7B00FF" filter="url(#mendGlow)"
+                initial={{ x: -26, rotate: -12 }}
+                animate={step === 0 ? { x: -26, rotate: -12 } : { x: 0, rotate: 0 }}
+                transition={{ duration: 0.9, ease: [0.34, 1.1, 0.64, 1] }}
+              />
+              <motion.path
+                d="M19 33 C19 33,35 22,35 13 C35 6.5,30.5 2.5,25.5 3.5 C23.5 4,21.5 5.5,20 8 L23.5 15.5 L17 19 L19 33Z"
+                fill="#9B22FF" filter="url(#mendGlow)"
+                initial={{ x: 26, rotate: 12 }}
+                animate={step === 0 ? { x: 26, rotate: 12 } : { x: 0, rotate: 0 }}
+                transition={{ duration: 0.9, ease: [0.34, 1.1, 0.64, 1] }}
+              />
+              <motion.path
+                d="M18 8 L14.5 15.5 L21 19 L17 28"
+                stroke="#000" strokeWidth="1.5" fill="none" strokeLinejoin="round"
+                initial={{ opacity: 1 }}
+                animate={step === 0 ? { opacity: 1 } : { opacity: 0 }}
+                transition={{ duration: 0.5, delay: 0.4 }}
+              />
+            </>
+          )}
         </svg>
 
-        {/* Sparkle particles — appear on mended */}
-        {phase === 'mended' && (
+        {/* Sparkle particles on mended */}
+        {step === 2 && (
           <div style={{ position: 'absolute', inset: 0 }}>
             {[...Array(8)].map((_, i) => {
               const angle = (i / 8) * 360
@@ -181,22 +169,35 @@ export default function SpinWheel() {
   const [winner, setWinner] = useState(null)
   const wheelRef = useRef(null)
 
-  // Auto-advance into the app 2.5 s after prize reveal — no manual action needed
+  // Keep stable refs so the auto-advance timer always sees current values
+  // even if the component re-renders between scheduling and firing.
+  const completeSpiRef = useRef(completeSpin)
+  completeSpiRef.current = completeSpin
+  const winnerRef = useRef(winner)
+  winnerRef.current = winner
+
+  // Auto-advance: once the prize is revealed, navigate into the app after 2.5s.
+  // Depends only on `phase` so the timer fires exactly once and isn't
+  // restarted by completeSpin reference changes.
   useEffect(() => {
-    if (phase !== 'revealed' || !winner) return
-    const timer = setTimeout(() => completeSpin(winner.reward), 2500)
-    return () => clearTimeout(timer)
-  }, [phase, winner, completeSpin])
+    if (phase !== 'revealed') return
+    const t = setTimeout(() => {
+      completeSpiRef.current(winnerRef.current?.reward ?? null)
+    }, 2500)
+    return () => clearTimeout(t)
+  }, [phase])
 
   const spin = () => {
     if (phase !== 'idle') return
     const winIdx = Math.floor(Math.random() * N)
-    // Rotate so the winner lands at the top pointer (see math in planning)
     const target = rotation + 1800 + 360 - (winIdx + 0.5) * SEG_DEG
     setRotation(target)
+
+    let seg = SEGMENTS[winIdx]
+    if (seg.reward.type === 'mystery') seg = resolveMystery(seg)
+
+    setWinner(seg)
     setPhase('spinning')
-    setWinner(SEGMENTS[winIdx])
-    // After spin animation (5.5s), go to mending
     setTimeout(() => setPhase('mending'), 5500)
   }
 
@@ -270,18 +271,13 @@ export default function SpinWheel() {
                   overflow: 'hidden',
                 }}
               >
-                <svg
-                  width="300" height="300"
-                  viewBox="0 0 300 300"
-                  style={{ display: 'block' }}
-                >
+                <svg width="300" height="300" viewBox="0 0 300 300" style={{ display: 'block' }}>
                   {SEGMENTS.map((seg, i) => {
                     const startDeg = i * SEG_DEG
                     const endDeg = (i + 1) * SEG_DEG
                     const midDeg = startDeg + SEG_DEG / 2
                     const tp = polar(cx, cy, textR, midDeg)
                     const lines = seg.label.split('\n')
-
                     return (
                       <g key={i}>
                         <path
@@ -311,14 +307,12 @@ export default function SpinWheel() {
                       </g>
                     )
                   })}
-                  {/* Center circle */}
                   <circle cx={cx} cy={cy} r="22" fill="#0a0a0a" stroke="rgba(123,0,255,0.4)" strokeWidth="2" />
                   <text x={cx} y={cy} textAnchor="middle" dominantBaseline="middle" fill="rgba(255,255,255,0.4)" fontSize="8" fontFamily="'Space Mono', monospace">SPIN</text>
                 </svg>
               </motion.div>
             </div>
 
-            {/* Spin button */}
             <motion.button
               onClick={spin}
               disabled={phase === 'spinning'}
@@ -364,7 +358,7 @@ export default function SpinWheel() {
             transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
             style={{ textAlign: 'center', maxWidth: 480, padding: '0 20px' }}
           >
-            {/* Mended heart icon (static) */}
+            {/* Mended heart icon */}
             <div style={{ marginBottom: 28 }}>
               <svg width="72" height="68" viewBox="0 0 38 36" style={{ filter: 'drop-shadow(0 0 14px #7B00FF) drop-shadow(0 0 28px #FF006E)' }}>
                 <defs>
@@ -377,13 +371,24 @@ export default function SpinWheel() {
               </svg>
             </div>
 
+            {winner.reward.isMystery && (
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.05 }}
+                style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--pink)', marginBottom: 6 }}
+              >
+                ✦ Mystery unlocked
+              </motion.p>
+            )}
+
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.1 }}
               style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--purple-pale)', marginBottom: 12 }}
             >
-              You won
+              {winner.reward.isMystery ? 'Your mystery reward:' : 'You won'}
             </motion.p>
 
             <motion.h2
@@ -420,37 +425,22 @@ export default function SpinWheel() {
               </motion.div>
             )}
 
-            {winner.reward.type === 'mystery' && (
-              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}
-                style={{ fontFamily: 'var(--font-body)', fontSize: '0.9rem', color: 'var(--muted)', marginBottom: 24, lineHeight: 1.6 }}>
-                Your mystery reward will be revealed at checkout.
-                {/* TODO: Apply mystery discount server-side at checkout */}
-              </motion.p>
-            )}
-
-            <motion.button
+            <motion.p
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.55 }}
-              onClick={() => completeSpin(winner.reward)}
-              whileTap={{ scale: 0.97 }}
-              style={{
-                padding: '14px 40px',
-                background: 'transparent',
-                border: '1px solid rgba(123,0,255,0.4)',
-                color: 'var(--purple-pale)',
-                fontFamily: 'var(--font-mono)', fontSize: '0.7rem',
-                letterSpacing: '0.2em', textTransform: 'uppercase',
-              }}
+              style={{ fontFamily: 'var(--font-mono)', fontSize: '0.55rem', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.2)', textTransform: 'uppercase', marginBottom: 4 }}
             >
-              Start Shopping →
-            </motion.button>
+              Reward saved — applies at checkout
+            </motion.p>
 
             <motion.p
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }}
-              style={{ fontFamily: 'var(--font-mono)', fontSize: '0.55rem', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.2)', textTransform: 'uppercase', marginTop: 20 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.7 }}
+              style={{ fontFamily: 'var(--font-mono)', fontSize: '0.5rem', letterSpacing: '0.08em', color: 'rgba(255,255,255,0.12)', textTransform: 'uppercase' }}
             >
-              Reward saved to your account — applies at checkout
+              Taking you to the store…
               {/* TODO: Discount application wired to real checkout/payment */}
             </motion.p>
           </motion.div>
