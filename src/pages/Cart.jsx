@@ -28,6 +28,11 @@ export default function Cart() {
             </h1>
           </motion.div>
 
+          {/* Free shipping progress bar */}
+          {items.length > 0 && (
+            <FreeShippingBar subtotal={subtotal} />
+          )}
+
           {items.length === 0 ? (
             <motion.div
               initial={{ opacity: 0 }}
@@ -243,6 +248,57 @@ export default function Cart() {
         }
       `}</style>
     </PageTransition>
+  )
+}
+
+const FREE_SHIPPING_THRESHOLD = 100
+
+function FreeShippingBar({ subtotal }) {
+  const pct = Math.min((subtotal / FREE_SHIPPING_THRESHOLD) * 100, 100)
+  const remaining = FREE_SHIPPING_THRESHOLD - subtotal
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      style={{
+        marginBottom: 36,
+        padding: '16px 20px',
+        background: 'rgba(123,0,255,0.06)',
+        border: '1px solid rgba(123,0,255,0.14)',
+      }}
+    >
+      <p style={{
+        fontFamily: 'var(--font-mono)', fontSize: '0.65rem',
+        letterSpacing: '0.14em', textTransform: 'uppercase',
+        color: pct >= 100 ? 'var(--purple-pale)' : 'var(--muted)',
+        marginBottom: 10,
+      }}>
+        {pct >= 100
+          ? '✓ You have free shipping!'
+          : `$${remaining.toFixed(2)} away from free shipping`}
+      </p>
+      <div style={{
+        height: 3,
+        background: 'rgba(255,255,255,0.07)',
+        borderRadius: 2,
+        overflow: 'hidden',
+      }}>
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: `${pct}%` }}
+          transition={{ duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
+          style={{
+            height: '100%',
+            background: pct >= 100
+              ? 'linear-gradient(90deg, #7B00FF, #b877ff)'
+              : 'linear-gradient(90deg, #7B00FF, #FF006E)',
+            borderRadius: 2,
+            boxShadow: pct >= 100 ? '0 0 8px rgba(123,0,255,0.5)' : 'none',
+          }}
+        />
+      </div>
+    </motion.div>
   )
 }
 

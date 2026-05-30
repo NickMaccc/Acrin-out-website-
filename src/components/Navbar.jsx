@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useCart } from '../context/CartContext'
+import { useAuth } from '../context/AuthContext'
 
 const NAV_LINKS = [
   { label: 'Home', to: '/' },
@@ -13,6 +14,7 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const { totalItems } = useCart()
+  const { user, signOut } = useAuth()
   const location = useLocation()
 
   useEffect(() => {
@@ -91,6 +93,48 @@ export default function Navbar() {
               {link.label}
             </NavLink>
           ))}
+
+          {/* Account */}
+          {user ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{
+                fontFamily: 'var(--font-mono)', fontSize: '0.65rem',
+                letterSpacing: '0.12em', textTransform: 'uppercase',
+                color: 'var(--purple-pale)',
+              }}>
+                {user.name}
+              </span>
+              <button
+                onClick={signOut}
+                style={{
+                  background: 'none', border: '1px solid rgba(123,0,255,0.3)',
+                  fontFamily: 'var(--font-mono)', fontSize: '0.6rem',
+                  letterSpacing: '0.15em', textTransform: 'uppercase',
+                  color: 'var(--muted)', padding: '5px 10px',
+                  transition: 'all 0.2s',
+                }}
+                onMouseEnter={e => { e.target.style.color = 'var(--white)'; e.target.style.borderColor = 'var(--purple)' }}
+                onMouseLeave={e => { e.target.style.color = 'var(--muted)'; e.target.style.borderColor = 'rgba(123,0,255,0.3)' }}
+              >
+                Sign Out
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => window.location.href = '/'}
+              style={{
+                background: 'none', border: '1px solid rgba(123,0,255,0.4)',
+                fontFamily: 'var(--font-mono)', fontSize: '0.65rem',
+                letterSpacing: '0.15em', textTransform: 'uppercase',
+                color: 'var(--purple-pale)', padding: '7px 14px',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(123,0,255,0.12)'; e.currentTarget.style.borderColor = 'var(--purple)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.borderColor = 'rgba(123,0,255,0.4)' }}
+            >
+              Log In
+            </button>
+          )}
 
           {/* Cart */}
           <Link
