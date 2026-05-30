@@ -63,7 +63,7 @@ export default function Landing() {
             textTransform: 'uppercase', color: 'var(--purple-pale)',
             marginBottom: 24,
           }}>
-            Dark streetwear — Est. 2025
+            Dark streetwear — Est. 2026
           </p>
 
           <h1 style={{

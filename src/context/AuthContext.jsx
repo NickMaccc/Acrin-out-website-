@@ -54,6 +54,9 @@ export function AuthProvider({ children }) {
     setAppPhase('app')
   }
 
+  // Opens the auth screen from within the app (e.g. navbar Log In button)
+  const openAuth = () => setAppPhase('gate')
+
   const completeSpin = (wonReward) => {
     setReward(wonReward)
     if (wonReward) sessionStorage.setItem('ao_reward', JSON.stringify(wonReward))
@@ -61,7 +64,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, reward, appPhase, signIn, signUp, signOut, skipGate, completeSpin }}>
+    <AuthContext.Provider value={{ user, reward, appPhase, signIn, signUp, signOut, skipGate, openAuth, completeSpin }}>
       {children}
     </AuthContext.Provider>
   )

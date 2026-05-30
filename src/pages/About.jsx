@@ -5,16 +5,14 @@ import Footer from '../components/Footer'
 
 const STANZAS = [
   {
-    type: 'h1',
-    lines: ['About me.'],
-    size: 'clamp(3.5rem, 9vw, 8rem)',
+    type: 'eyebrow',
+    lines: ['about me.'],
   },
   {
-    type: 'h2',
+    type: 'h1',
     lines: ['About... Us.'],
-    size: 'clamp(2rem, 5vw, 4.5rem)',
-    color: 'var(--purple-pale)',
-    gap: 80,
+    size: 'clamp(4.5rem, 10vw, 9rem)',
+    gap: 10,
   },
   {
     type: 'body',
@@ -78,13 +76,28 @@ function Stanza({ stanza, index }) {
       transition={{ duration: 0.7, delay: index === 0 ? 0.1 : 0, ease: [0.25, 0.1, 0.25, 1] }}
       style={{ marginTop: stanza.gap || 48 }}
     >
+      {stanza.type === 'eyebrow' && (
+        <p style={{
+          fontFamily: 'var(--font-mono)',
+          fontSize: 'clamp(0.65rem, 1.4vw, 0.82rem)',
+          letterSpacing: '0.35em',
+          textTransform: 'uppercase',
+          color: 'var(--muted)',
+        }}>
+          {stanza.lines[0]}
+        </p>
+      )}
+
       {stanza.type === 'h1' && (
         <h1 style={{
           fontFamily: 'var(--font-display)',
           fontSize: stanza.size,
-          lineHeight: 0.9,
-          letterSpacing: '0.02em',
-          color: 'var(--white)',
+          lineHeight: 0.88,
+          letterSpacing: '0.01em',
+          background: 'linear-gradient(120deg, #fff 0%, #fff 45%, #b877ff 75%, #FF006E 100%)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          backgroundSize: '200% 100%',
         }}>
           {stanza.lines[0]}
         </h1>
@@ -177,7 +190,7 @@ export default function About() {
               color: 'var(--purple-pale)',
             }}
           >
-            — Actin Out, est. 2025
+            — Actin Out, est. 2026
           </motion.p>
         </div>
       </div>
