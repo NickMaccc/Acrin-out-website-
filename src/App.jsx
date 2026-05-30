@@ -5,6 +5,7 @@ import Cursor from './components/Cursor'
 import Home from './pages/Home'
 import Apparel from './pages/Apparel'
 import CategoryPage from './pages/CategoryPage'
+import About from './pages/About'
 import ProductDetail from './pages/ProductDetail'
 import Cart from './pages/Cart'
 import Checkout from './pages/Checkout'
@@ -23,6 +24,7 @@ export default function App() {
           <Route path="/apparel/tshirts" element={<CategoryPage category="tshirts" />} />
           <Route path="/apparel/hoodies" element={<CategoryPage category="hoodies" />} />
           <Route path="/apparel/accessories" element={<CategoryPage category="accessories" />} />
+          <Route path="/about" element={<About />} />
           <Route path="/product/:slug" element={<ProductDetail />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />

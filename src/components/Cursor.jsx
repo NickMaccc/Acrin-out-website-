@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 
 const BrokenHeart = () => (
-  <svg width="38" height="52" viewBox="0 0 38 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <svg width="38" height="55" viewBox="0 0 38 55" fill="none" xmlns="http://www.w3.org/2000/svg">
     <defs>
       <filter id="heartGlow" x="-40%" y="-40%" width="180%" height="180%">
         <feGaussianBlur stdDeviation="3" result="blur" />
@@ -43,15 +43,17 @@ const BrokenHeart = () => (
       strokeLinejoin="round"
     />
 
-    {/* Drip stems */}
-    <line x1="12" y1="33" x2="11.5" y2="40" stroke="#7B00FF" strokeWidth="2.5" strokeLinecap="round" />
-    <line x1="19" y1="33" x2="19" y2="44" stroke="#7B00FF" strokeWidth="3" strokeLinecap="round" />
-    <line x1="26" y1="33" x2="26.5" y2="38" stroke="#7B00FF" strokeWidth="2" strokeLinecap="round" />
+    {/* Teardrop drip 1 — left, small. Pointed top meets heart, rounded liquid bottom. */}
+    <path d="M 12 33 C 15 36.5, 15 41.5, 12 44.5 C 9 41.5, 9 36.5, 12 33 Z"
+      fill="#7B00FF" opacity="0.9" />
 
-    {/* Drip drops */}
-    <ellipse cx="11.5" cy="43" rx="2" ry="3" fill="#7B00FF" opacity="0.9" />
-    <ellipse cx="19" cy="48" rx="2.5" ry="3.5" fill="#7B00FF" />
-    <ellipse cx="26.5" cy="41" rx="1.7" ry="2.5" fill="#7B00FF" opacity="0.75" />
+    {/* Teardrop drip 2 — center, largest */}
+    <path d="M 19 33 C 23 37.5, 23 46, 19 50 C 15 46, 15 37.5, 19 33 Z"
+      fill="#7B00FF" />
+
+    {/* Teardrop drip 3 — right, medium */}
+    <path d="M 26 33 C 28.5 36, 28.5 41, 26 43.5 C 23.5 41, 23.5 36, 26 33 Z"
+      fill="#7B00FF" opacity="0.8" />
   </svg>
 )
 
