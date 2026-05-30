@@ -69,13 +69,14 @@ export default function ProductDetail() {
         </div>
 
         {/* Main layout */}
-        <section style={{
+        <section data-product-grid="" style={{
           padding: '40px 40px 80px', maxWidth: 1440, margin: '0 auto',
           display: 'grid', gridTemplateColumns: '1fr 1fr',
           gap: 80, alignItems: 'start',
         }}>
           {/* Image column */}
           <motion.div
+            data-product-images=""
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
@@ -292,8 +293,17 @@ export default function ProductDetail() {
 
       <style>{`
         @media (max-width: 860px) {
-          section[style*="grid-template-columns: 1fr 1fr"] {
+          [data-product-grid] {
             grid-template-columns: 1fr !important;
+            gap: 36px !important;
+            padding-left: 20px !important;
+            padding-right: 20px !important;
+          }
+          /* Images must NOT be sticky on mobile — sticky in single-col causes
+             the image block to overlap the info column below it */
+          [data-product-images] {
+            position: relative !important;
+            top: 0 !important;
           }
         }
       `}</style>
