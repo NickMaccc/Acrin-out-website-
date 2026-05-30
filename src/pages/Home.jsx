@@ -290,7 +290,7 @@ export default function Home() {
           transition={{ repeat: Infinity, duration: 22, ease: 'linear' }}
           style={{ display: 'flex', gap: 56, whiteSpace: 'nowrap', width: 'max-content' }}
         >
-          {Array(8).fill(['WEAR YOUR EMOTIONS', '✦', 'HEARTBREAK SERIES', '✦', 'LOVE NOTES SERIES', '✦', 'NEW DROP', '✦']).flat().map((t, i) => (
+          {Array(8).fill(['WEAR YOUR EMOTIONS', '✦', 'HEARTBREAK SERIES', '✦', 'LOVE NOTES SERIES', '✦']).flat().map((t, i) => (
             <span key={i} style={{
               fontFamily: 'var(--font-mono)', fontSize: '0.65rem',
               letterSpacing: '0.3em', textTransform: 'uppercase',

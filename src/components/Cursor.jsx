@@ -2,23 +2,24 @@ import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 
 // ── Drip config ───────────────────────────────────────────────────
-// Three classic teardrops (rounded bulb bottom, tapered tip top) arranged
-// in a descending diagonal: LEFT is highest, MIDDLE is lower, RIGHT is lowest.
-// All three are similar in size. They drip left→middle→right in a staggered loop.
+// Three raindrops in descending diagonal: LEFT highest, MIDDLE lower, RIGHT lowest.
+// Each drop is a true teardrop: round circle at the bottom, pointed tip at the top
+// (like a falling water drop or the 💧 emoji). They drip left→middle→right, looped.
 
-const DRIP_DUR = 1.8            // seconds per full drip cycle
-const STAGGER = DRIP_DUR / 3   // 0.6 s between each drop
+const DRIP_DUR = 1.8            // seconds per drip cycle
+const STAGGER  = DRIP_DUR / 3  // 0.6 s between each drop
+const Y_FALL   = 18             // px the drop falls before fading
+const TIMES    = [0, 0.05, 0.16, 0.55, 0.58, 1]
 
-// Keyframe shape — drip forms at tip, falls, fades, resets invisibly
-const Y_FALL = 16   // px the drop falls before fading out
-const TIMES  = [0, 0.05, 0.16, 0.55, 0.58, 1]
+// scaleY from 50% 0% (top of bounding box = the pointed tip):
+// drop forms at the tip and grows downward, then falls, then resets invisibly
 const DRIP_ANIM = {
-  y:       [0,  0,  0,        Y_FALL, Y_FALL, 0],
-  scaleY:  [0.08, 0.08, 1.12, 0.65,  0.08,   0.08],
-  opacity: [0,  0,  1,        0,      0,      0],
+  y:       [0,    0,    0,    Y_FALL, Y_FALL, 0],
+  scaleY:  [0.06, 0.06, 1.1, 0.5,    0.06,   0.06],
+  opacity: [0,    0,    1,   0,       0,      0],
 }
 
-// Each drop's transformBox/Origin so scaleY grows downward from its tip
+// transformBox='fill-box' + transformOrigin='50% 0%' anchors scaleY at the tip
 const DRIP_STYLE = { transformBox: 'fill-box', transformOrigin: '50% 0%' }
 
 function dripTransition(delay) {
@@ -31,9 +32,29 @@ function dripTransition(delay) {
   }
 }
 
+// ── True teardrop path ────────────────────────────────────────────
+// Produces a drop with a pointed tip at the TOP and a round circle at the BOTTOM —
+// exactly the shape of a falling raindrop / 💧 emoji / blood drop.
+// cx, tipY: center x and y of the pointed top
+// r: radius of the round bottom (drop is 2r wide at its widest)
+// height: total tip-to-bottom distance
+function tearPath(cx, tipY, r = 4, height = 13) {
+  const cy  = tipY + height - r  // center of bottom circle
+  const rx  = cx + r             // right tangent x (horizontal tangent = widest point)
+  const lx  = cx - r             // left tangent x
+
+  // Bezier control points taper from the tip outward to the circle's tangent.
+  // The right arc sweeps clockwise (sweep-flag=1) through the round bottom.
+  return (
+    `M ${cx} ${tipY} ` +
+    `C ${cx + r * 0.45} ${tipY + height * 0.32}, ${rx} ${tipY + height * 0.52}, ${rx} ${cy} ` +
+    `A ${r} ${r} 0 0 1 ${lx} ${cy} ` +
+    `C ${lx} ${tipY + height * 0.52}, ${cx - r * 0.45} ${tipY + height * 0.32}, ${cx} ${tipY} Z`
+  )
+}
+
 // ── Cursor SVG ────────────────────────────────────────────────────
-// Drop positions (tip y):  left=33, middle=36, right=39  → stair-step diagonal
-// Drop height: all ~12px tall  → similar size across all three
+// Drop tip y positions: left=33, middle=36, right=39 → descending diagonal
 const BrokenHeart = () => (
   <svg
     width="38" height="55"
@@ -81,49 +102,19 @@ const BrokenHeart = () => (
       strokeLinejoin="round"
     />
 
-    {/* ── Drip 1 — LEFT, highest (tip at y=33) ── */}
-    <motion.g
-      style={DRIP_STYLE}
-      animate={DRIP_ANIM}
-      transition={dripTransition(0)}
-    >
-      {/* Teardrop: tip at (12,33), bulb bottom at (12,45) */}
-      <path
-        d="M 12 33
-           C 14.5 36.5, 14.5 43, 12 45
-           C 9.5 43, 9.5 36.5, 12 33 Z"
-        fill="#7B00FF"
-      />
+    {/* ── Drop 1 — LEFT, highest (tip at y=33, cx=12) ── */}
+    <motion.g style={DRIP_STYLE} animate={DRIP_ANIM} transition={dripTransition(0)}>
+      <path d={tearPath(12, 33)} fill="#7B00FF" />
     </motion.g>
 
-    {/* ── Drip 2 — MIDDLE, lower (tip at y=36) ── */}
-    <motion.g
-      style={DRIP_STYLE}
-      animate={DRIP_ANIM}
-      transition={dripTransition(STAGGER)}
-    >
-      {/* Teardrop: tip at (19,36), bulb bottom at (19,48) */}
-      <path
-        d="M 19 36
-           C 21.5 39.5, 21.5 46, 19 48
-           C 16.5 46, 16.5 39.5, 19 36 Z"
-        fill="#8811FF"
-      />
+    {/* ── Drop 2 — MIDDLE, lower (tip at y=36, cx=19) ── */}
+    <motion.g style={DRIP_STYLE} animate={DRIP_ANIM} transition={dripTransition(STAGGER)}>
+      <path d={tearPath(19, 36)} fill="#8B11FF" />
     </motion.g>
 
-    {/* ── Drip 3 — RIGHT, lowest (tip at y=39) ── */}
-    <motion.g
-      style={DRIP_STYLE}
-      animate={DRIP_ANIM}
-      transition={dripTransition(STAGGER * 2)}
-    >
-      {/* Teardrop: tip at (26,39), bulb bottom at (26,51) */}
-      <path
-        d="M 26 39
-           C 28.5 42.5, 28.5 49, 26 51
-           C 23.5 49, 23.5 42.5, 26 39 Z"
-        fill="#7B00FF"
-      />
+    {/* ── Drop 3 — RIGHT, lowest (tip at y=39, cx=26) ── */}
+    <motion.g style={DRIP_STYLE} animate={DRIP_ANIM} transition={dripTransition(STAGGER * 2)}>
+      <path d={tearPath(26, 39)} fill="#7B00FF" />
     </motion.g>
   </svg>
 )
@@ -143,7 +134,6 @@ export default function Cursor() {
   useEffect(() => {
     const onMove = (e) => {
       pos.current = { x: e.clientX, y: e.clientY }
-      // Brighten on movement; debounce the "stopped" transition
       if (!isMovingRef.current) {
         isMovingRef.current = true
         setIsMoving(true)
@@ -190,7 +180,6 @@ export default function Cursor() {
     }
   }, [hovered])
 
-  // Glow: moving = max intensity neon, hover = medium, rest = standard glow
   const filter = isMoving
     ? 'drop-shadow(0 0 10px #9B22FF) drop-shadow(0 0 22px rgba(155,34,255,0.9)) drop-shadow(0 0 40px rgba(123,0,255,0.6))'
     : hovered
