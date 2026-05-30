@@ -77,7 +77,7 @@ function HeroSection() {
               marginBottom: 20,
             }}
           >
-            Now Available — 2025 Drop
+            Now Available — 2026 Drop
           </motion.p>
 
           <div style={{ overflow: 'hidden' }}>

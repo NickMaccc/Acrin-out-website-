@@ -14,7 +14,7 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const { totalItems } = useCart()
-  const { user, signOut } = useAuth()
+  const { user, signOut, openAuth } = useAuth()
   const location = useLocation()
 
   useEffect(() => {
@@ -121,7 +121,7 @@ export default function Navbar() {
             </div>
           ) : (
             <button
-              onClick={() => window.location.href = '/'}
+              onClick={openAuth}
               style={{
                 background: 'none', border: '1px solid rgba(123,0,255,0.4)',
                 fontFamily: 'var(--font-mono)', fontSize: '0.65rem',

@@ -76,7 +76,7 @@ export default function Footer() {
 
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:16, paddingTop:24, borderTop:'1px solid rgba(255,255,255,0.05)' }}>
         <p style={{ fontFamily:'var(--font-mono)', fontSize:'0.62rem', letterSpacing:'0.1em', color:'rgba(255,255,255,0.2)', textTransform:'uppercase' }}>
-          © 2025 ACTIN OUT. All emotional damage reserved.
+          © 2026 ACTIN OUT. All emotional damage reserved.
         </p>
         <div style={{ display:'flex', gap:24 }}>
           {['IG', 'TT', 'X'].map((s) => (

@@ -1,7 +1,39 @@
 import { useEffect, useRef, useState } from 'react'
+import { motion } from 'framer-motion'
+
+// Each drip cycles: form → fall → invisible → reset. Staggered by 1/3 of cycle.
+const DRIP_DUR = 1.8
+const DRIP_DELAYS = [0, DRIP_DUR / 3, (DRIP_DUR * 2) / 3]
+
+// Keyframe shape for all drips: appear at top, fall 15px, snap back invisible
+const DRIP_ANIM = {
+  y:       [0,   0,   0,   15,  15,  0],
+  opacity: [0,   0,   1,   0,   0,   0],
+  scaleY:  [0.1, 0.1, 1.1, 0.7, 0.1, 0.1],
+}
+const DRIP_TIMES = [0, 0.04, 0.16, 0.54, 0.58, 1]
+
+function dripTransition(delay) {
+  return {
+    duration: DRIP_DUR,
+    repeat: Infinity,
+    times: DRIP_TIMES,
+    ease: ['linear', 'easeOut', 'easeIn', 'linear', 'linear'],
+    delay,
+  }
+}
+
+// transformBox + transformOrigin ensure scaleY grows DOWN from the tip (top of drop)
+const DRIP_STYLE = { transformBox: 'fill-box', transformOrigin: '50% 0%' }
 
 const BrokenHeart = () => (
-  <svg width="38" height="55" viewBox="0 0 38 55" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <svg
+    width="38" height="55"
+    viewBox="0 0 38 55"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    overflow="visible"
+  >
     <defs>
       <filter id="heartGlow" x="-40%" y="-40%" width="180%" height="180%">
         <feGaussianBlur stdDeviation="3" result="blur" />
@@ -12,7 +44,7 @@ const BrokenHeart = () => (
       </filter>
     </defs>
 
-    {/* Left lobe of broken heart */}
+    {/* Left lobe */}
     <path
       d="M19 33
          C19 33, 3 22, 3 13
@@ -23,7 +55,7 @@ const BrokenHeart = () => (
       filter="url(#heartGlow)"
     />
 
-    {/* Right lobe of broken heart */}
+    {/* Right lobe */}
     <path
       d="M19 33
          C19 33, 35 22, 35 13
@@ -34,7 +66,7 @@ const BrokenHeart = () => (
       filter="url(#heartGlow)"
     />
 
-    {/* Crack outline (dark line through break) */}
+    {/* Crack */}
     <path
       d="M18 8 L14.5 15.5 L21 19 L17 28"
       stroke="#000000"
@@ -43,17 +75,43 @@ const BrokenHeart = () => (
       strokeLinejoin="round"
     />
 
-    {/* Teardrop drip 1 — left, small. Pointed top meets heart, rounded liquid bottom. */}
-    <path d="M 12 33 C 15 36.5, 15 41.5, 12 44.5 C 9 41.5, 9 36.5, 12 33 Z"
-      fill="#7B00FF" opacity="0.9" />
+    {/* Drip 1 — left, smallest */}
+    <motion.g
+      style={DRIP_STYLE}
+      animate={DRIP_ANIM}
+      transition={dripTransition(DRIP_DELAYS[0])}
+    >
+      <path
+        d="M 12 33 C 14.5 36, 14.5 42, 12 44.5 C 9.5 42, 9.5 36, 12 33 Z"
+        fill="#7B00FF"
+        opacity="0.85"
+      />
+    </motion.g>
 
-    {/* Teardrop drip 2 — center, largest */}
-    <path d="M 19 33 C 23 37.5, 23 46, 19 50 C 15 46, 15 37.5, 19 33 Z"
-      fill="#7B00FF" />
+    {/* Drip 2 — center, largest */}
+    <motion.g
+      style={DRIP_STYLE}
+      animate={DRIP_ANIM}
+      transition={dripTransition(DRIP_DELAYS[1])}
+    >
+      <path
+        d="M 19 33 C 22.5 37, 22.5 45.5, 19 49 C 15.5 45.5, 15.5 37, 19 33 Z"
+        fill="#7B00FF"
+      />
+    </motion.g>
 
-    {/* Teardrop drip 3 — right, medium */}
-    <path d="M 26 33 C 28.5 36, 28.5 41, 26 43.5 C 23.5 41, 23.5 36, 26 33 Z"
-      fill="#7B00FF" opacity="0.8" />
+    {/* Drip 3 — right, medium */}
+    <motion.g
+      style={DRIP_STYLE}
+      animate={DRIP_ANIM}
+      transition={dripTransition(DRIP_DELAYS[2])}
+    >
+      <path
+        d="M 26 33 C 28 36, 28 41, 26 43.5 C 24 41, 24 36, 26 33 Z"
+        fill="#7B00FF"
+        opacity="0.9"
+      />
+    </motion.g>
   </svg>
 )
 
@@ -81,16 +139,12 @@ export default function Cursor() {
     }
 
     const onEnter = (e) => {
-      if (
-        e.target.closest('a, button, [data-cursor-scale], input, select, textarea, label')
-      ) {
+      if (e.target.closest('a, button, [data-cursor-scale], input, select, textarea, label')) {
         setHovered(true)
       }
     }
     const onLeave = (e) => {
-      if (
-        e.target.closest('a, button, [data-cursor-scale], input, select, textarea, label')
-      ) {
+      if (e.target.closest('a, button, [data-cursor-scale], input, select, textarea, label')) {
         setHovered(false)
       }
     }
@@ -118,8 +172,10 @@ export default function Cursor() {
         pointerEvents: 'none',
         zIndex: 99999,
         willChange: 'transform',
-        transition: 'transform 0.15s cubic-bezier(0.25, 0.1, 0.25, 1)',
-        filter: hovered ? 'drop-shadow(0 0 8px #7B00FF)' : 'drop-shadow(0 0 4px rgba(123,0,255,0.5))',
+        filter: hovered
+          ? 'drop-shadow(0 0 8px #7B00FF)'
+          : 'drop-shadow(0 0 4px rgba(123,0,255,0.5))',
+        overflow: 'visible',
       }}
     >
       <BrokenHeart />
