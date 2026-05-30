@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence, useAnimation } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 
@@ -45,8 +45,8 @@ function MendingHeart({ onDone }) {
     onDone()
   }
 
-  // Auto-trigger on mount
-  useState(() => { runMend() })
+  // Auto-trigger on mount (useEffect, not useState — initializer is for state values only)
+  useEffect(() => { runMend() }, [])
 
   const leftVariants = {
     broken: { x: -26, rotate: -12, opacity: 1 },
@@ -180,6 +180,13 @@ export default function SpinWheel() {
   const [rotation, setRotation] = useState(0)
   const [winner, setWinner] = useState(null)
   const wheelRef = useRef(null)
+
+  // Auto-advance into the app 2.5 s after prize reveal — no manual action needed
+  useEffect(() => {
+    if (phase !== 'revealed' || !winner) return
+    const timer = setTimeout(() => completeSpin(winner.reward), 2500)
+    return () => clearTimeout(timer)
+  }, [phase, winner, completeSpin])
 
   const spin = () => {
     if (phase !== 'idle') return
@@ -428,11 +435,12 @@ export default function SpinWheel() {
               onClick={() => completeSpin(winner.reward)}
               whileTap={{ scale: 0.97 }}
               style={{
-                padding: '16px 48px',
-                background: 'var(--purple)', border: 'none', color: '#fff',
-                fontFamily: 'var(--font-mono)', fontSize: '0.78rem',
+                padding: '14px 40px',
+                background: 'transparent',
+                border: '1px solid rgba(123,0,255,0.4)',
+                color: 'var(--purple-pale)',
+                fontFamily: 'var(--font-mono)', fontSize: '0.7rem',
                 letterSpacing: '0.2em', textTransform: 'uppercase',
-                boxShadow: '0 0 30px rgba(123,0,255,0.3)',
               }}
             >
               Start Shopping →
