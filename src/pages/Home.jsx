@@ -37,9 +37,8 @@ function HeroSection() {
   return (
     <section
       ref={containerRef}
+      data-hero=""
       style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
         minHeight: 'clamp(520px, 70vh, 800px)',
         paddingTop: 80,
         overflow: 'hidden',
@@ -173,6 +172,7 @@ function HeroSection() {
 
       {/* Right — editorial image */}
       <motion.div
+        data-hero-image=""
         initial={{ opacity: 0, scale: 1.03 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 1, delay: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
@@ -200,12 +200,6 @@ function HeroSection() {
         </div>
       </motion.div>
 
-      {/* Mobile responsive override */}
-      <style>{`
-        @media (max-width: 768px) {
-          section[data-hero] { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
     </section>
   )
 }
@@ -217,12 +211,11 @@ function CollectionBlock({ title, subtitle, desc, to, products: prods, accent, s
   return (
     <motion.section
       ref={ref}
+      data-collection=""
       initial={{ opacity: 0 }}
       animate={inView ? { opacity: 1 } : {}}
       transition={{ duration: 0.8 }}
       style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
         gap: 0,
         borderTop: '1px solid rgba(255,255,255,0.05)',
       }}
@@ -258,7 +251,7 @@ function CollectionBlock({ title, subtitle, desc, to, products: prods, accent, s
       <div style={{
         order: side === 'left' ? 2 : 1,
         padding: 'clamp(24px, 4vw, 60px)',
-        display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)',
+        display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
         gap: 12, alignContent: 'center',
       }}>
         {prods.map((p, i) => (
@@ -273,11 +266,6 @@ function CollectionBlock({ title, subtitle, desc, to, products: prods, accent, s
         ))}
       </div>
 
-      <style>{`
-        @media (max-width: 900px) {
-          section[data-collection] { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
     </motion.section>
   )
 }
@@ -336,10 +324,9 @@ export default function Home() {
 
       {/* Editorial */}
       <RevealBlock>
-        <section className="cv-auto" style={{
+        <section data-editorial="" className="cv-auto" style={{
           margin: '100px auto',
           maxWidth: 1440, padding: '0 40px',
-          display: 'grid', gridTemplateColumns: '1fr 1fr',
           gap: 60, alignItems: 'center',
         }}>
           <div>
@@ -417,14 +404,6 @@ export default function Home() {
       </RevealBlock>
 
       <Footer />
-
-      <style>{`
-        @media (max-width: 768px) {
-          section[style*="grid-template-columns: 1fr 1fr"] {
-            grid-template-columns: 1fr !important;
-          }
-        }
-      `}</style>
     </PageTransition>
   )
 }

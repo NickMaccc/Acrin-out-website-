@@ -90,7 +90,7 @@ export default function CategoryPage({ category }) {
             <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', letterSpacing: '0.15em', color: 'var(--muted)', textTransform: 'uppercase' }}>
               {products.length} Products
             </p>
-            <div style={{ display: 'flex', gap: 16 }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {['All', 'New', 'Heartbreak Series', 'Love Notes Series'].map((f) => (
                 <button key={f} className="btn btn-ghost" style={{ fontSize: '0.6rem', padding: '6px 14px' }}>
                   {f}
