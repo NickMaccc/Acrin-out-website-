@@ -72,15 +72,18 @@ input, textarea, select { font-family: var(--font-body); cursor: none; color: va
 }
 
 /* ─── NOISE OVERLAY ─────────────────────────────────────────────── */
+/* NOTE: Must stay position:fixed with inset:0 — the old 400%/inset:-200%
+   approach caused mobile browsers to detect overflow and zoom-oscillate. */
 .grain-overlay {
-  position: fixed; inset: -200%;
-  width: 400%; height: 400%;
+  position: fixed; inset: 0;
+  width: 100%; height: 100%;
   pointer-events: none;
   z-index: 9999;
-  opacity: 0.03;
+  opacity: 0.035;
   animation: grain 1.2s steps(2) infinite;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-  will-change: transform;
+  background-repeat: repeat;
+  background-size: 256px 256px;
 }
 
 /* Slow down grain on low-end devices / reduced-motion */
@@ -88,17 +91,18 @@ input, textarea, select { font-family: var(--font-body); cursor: none; color: va
   .grain-overlay { animation-duration: 3s; opacity: 0.02; }
 }
 
+/* Animate background-position instead of transform so element stays viewport-sized */
 @keyframes grain {
-  0%, 100% { transform: translate(0, 0); }
-  10%       { transform: translate(-2%, -3%); }
-  20%       { transform: translate(3%, 2%); }
-  30%       { transform: translate(-1%, 4%); }
-  40%       { transform: translate(4%, -1%); }
-  50%       { transform: translate(-3%, 3%); }
-  60%       { transform: translate(2%, -4%); }
-  70%       { transform: translate(-4%, 1%); }
-  80%       { transform: translate(1%, -2%); }
-  90%       { transform: translate(-2%, 4%); }
+  0%, 100% { background-position:   0px   0px; }
+  10%       { background-position: -25px -35px; }
+  20%       { background-position:  35px  25px; }
+  30%       { background-position: -15px  50px; }
+  40%       { background-position:  50px -15px; }
+  50%       { background-position: -40px  40px; }
+  60%       { background-position:  25px -50px; }
+  70%       { background-position: -50px  15px; }
+  80%       { background-position:  15px -25px; }
+  90%       { background-position: -25px  50px; }
 }
 
 /* ─── REDUCED MOTION ────────────────────────────────────────────── */
@@ -178,7 +182,10 @@ input, textarea, select { font-family: var(--font-body); cursor: none; color: va
 .btn-ghost:hover { color: var(--white); border-color: var(--gray); }
 
 /* ─── PAGE WRAPPER ──────────────────────────────────────────────── */
-.page { min-height: 100vh; padding-top: 80px; }
+.page { min-height: 100vh; padding-top: 80px; width: 100%; }
+
+/* Ensure inner content sections never overflow their container */
+.page section, .page > div { max-width: 100%; }
 
 /* ─── SECTION TITLES ────────────────────────────────────────────── */
 .section-eyebrow {
@@ -214,6 +221,40 @@ input, textarea, select { font-family: var(--font-body); cursor: none; color: va
 
   /* Reduce layout complexity */
   .page { padding-top: 70px; }
+
+  /* Ensure no horizontal scroll */
+  html, body { overflow-x: hidden; max-width: 100vw; }
+}
+
+/* ─── RESPONSIVE GRID HELPERS ───────────────────────────────────── */
+/* Used where inline-style grids can't carry a media-query override. */
+[data-hero] {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+@media (max-width: 768px) {
+  [data-hero] {
+    grid-template-columns: 1fr !important;
+  }
+  [data-hero] [data-hero-image] {
+    min-height: clamp(240px, 45vw, 400px) !important;
+  }
+}
+
+[data-collection] {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+@media (max-width: 900px) {
+  [data-collection] { grid-template-columns: 1fr !important; }
+}
+
+[data-editorial] {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+@media (max-width: 768px) {
+  [data-editorial] { grid-template-columns: 1fr !important; }
 }
 
 /* ─── CONTENT VISIBILITY FOR OFF-SCREEN SECTIONS ───────────────── */
