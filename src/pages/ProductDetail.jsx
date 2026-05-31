@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { motion, useInView } from 'framer-motion'
+import { motion, useInView, AnimatePresence } from 'framer-motion'
 import PageTransition from '../components/PageTransition'
 import PlaceholderImage from '../components/PlaceholderImage'
 import ProductCard from '../components/ProductCard'
@@ -13,6 +13,207 @@ const COLLECTION_LABELS = {
   'love-notes-series': 'Love Notes Series',
 }
 
+// ── Size guide data (tops: tees & hoodies) ───────────────────────
+// Measurements reflect oversized / dropped-shoulder streetwear construction.
+// All garment measurements taken flat; double chest for full circumference.
+// TODO: replace with final brand-confirmed measurements before launch.
+const SIZE_ROWS = [
+  { size: 'XS',  uk: '6–8',   eu: '32–34', chest: ['20"', '51 cm'], length: ['26"', '66 cm'], sleeve: ['31"', '79 cm'] },
+  { size: 'S',   uk: '8–10',  eu: '36–38', chest: ['22"', '56 cm'], length: ['27"', '69 cm'], sleeve: ['32"', '81 cm'] },
+  { size: 'M',   uk: '12–14', eu: '40–42', chest: ['24"', '61 cm'], length: ['28"', '71 cm'], sleeve: ['33"', '84 cm'] },
+  { size: 'L',   uk: '16–18', eu: '44–46', chest: ['26"', '66 cm'], length: ['29"', '74 cm'], sleeve: ['34"', '86 cm'] },
+  { size: 'XL',  uk: '20–22', eu: '48–50', chest: ['28"', '71 cm'], length: ['30"', '76 cm'], sleeve: ['35"', '89 cm'] },
+  { size: 'XXL', uk: '24',    eu: '52',    chest: ['30"', '76 cm'], length: ['31"', '79 cm'], sleeve: ['36"', '91 cm'] },
+]
+
+// ── Size Guide Modal ──────────────────────────────────────────────
+function SizeGuideModal({ onClose }) {
+  return (
+    <motion.div
+      key="sg-overlay"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.25 }}
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 10000,
+        background: 'rgba(0,0,0,0.82)',
+        backdropFilter: 'blur(6px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '20px',
+        overflowY: 'auto',
+      }}
+    >
+      <motion.div
+        key="sg-panel"
+        initial={{ opacity: 0, y: 24, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 16, scale: 0.97 }}
+        transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: '100%', maxWidth: 720,
+          background: '#0a0a0a',
+          border: '1px solid rgba(123,0,255,0.25)',
+          boxShadow: '0 0 60px rgba(123,0,255,0.15), 0 0 120px rgba(123,0,255,0.06)',
+          padding: 'clamp(24px, 5vw, 48px)',
+          position: 'relative',
+          maxHeight: 'calc(100vh - 40px)',
+          overflowY: 'auto',
+        }}
+      >
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 6 }}>
+          <div>
+            <p style={{
+              fontFamily: 'var(--font-mono)', fontSize: '0.55rem',
+              letterSpacing: '0.3em', textTransform: 'uppercase',
+              color: 'var(--purple-pale)', marginBottom: 6,
+            }}>
+              Actin Out
+            </p>
+            <h2 style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: 'clamp(2rem, 6vw, 3.5rem)',
+              lineHeight: 0.9, letterSpacing: '0.03em',
+              color: 'var(--white)',
+            }}>
+              Size Guide
+            </h2>
+          </div>
+          <button
+            onClick={onClose}
+            aria-label="Close size guide"
+            style={{
+              background: 'none', border: '1px solid rgba(255,255,255,0.1)',
+              color: 'var(--muted)', fontFamily: 'var(--font-mono)',
+              fontSize: '0.75rem', letterSpacing: '0.1em',
+              padding: '6px 12px', transition: 'all 0.2s',
+              flexShrink: 0, marginLeft: 16, marginTop: 4,
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--white)'; e.currentTarget.style.borderColor = 'var(--purple)' }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--muted)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)' }}
+          >
+            ✕ Close
+          </button>
+        </div>
+
+        <p style={{
+          fontFamily: 'var(--font-mono)', fontSize: '0.62rem',
+          letterSpacing: '0.15em', textTransform: 'uppercase',
+          color: 'var(--muted)', marginBottom: 28,
+        }}>
+          Tops — Tees &amp; Hoodies
+        </p>
+
+        {/* Fit note */}
+        <div style={{
+          padding: '12px 16px', marginBottom: 28,
+          background: 'rgba(123,0,255,0.06)',
+          border: '1px solid rgba(123,0,255,0.18)',
+        }}>
+          <p style={{
+            fontFamily: 'var(--font-mono)', fontSize: '0.6rem',
+            letterSpacing: '0.12em', textTransform: 'uppercase',
+            color: 'var(--purple-pale)', lineHeight: 1.7,
+          }}>
+            ▸ Garments are oversized / dropped-shoulder fit — size down if you prefer a closer cut.<br />
+            ▸ All measurements taken flat across the garment (double chest for full circumference).<br />
+            ▸ Values are approximate — final measurements may vary ±0.5 in / 1 cm per style.
+          </p>
+        </div>
+
+        {/* Table — horizontal scroll on narrow screens */}
+        <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', marginBottom: 24 }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 520 }}>
+            <thead>
+              <tr>
+                {['US', 'UK', 'EU', 'Chest', 'Body Length', 'Sleeve'].map((h) => (
+                  <th key={h} style={{
+                    fontFamily: 'var(--font-mono)', fontSize: '0.55rem',
+                    letterSpacing: '0.2em', textTransform: 'uppercase',
+                    color: 'var(--purple-pale)',
+                    padding: '10px 12px', textAlign: 'left',
+                    borderBottom: '1px solid rgba(123,0,255,0.25)',
+                    whiteSpace: 'nowrap',
+                  }}>
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {SIZE_ROWS.map((row, i) => (
+                <tr
+                  key={row.size}
+                  style={{ background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)' }}
+                >
+                  {/* US size */}
+                  <td style={tdStyle}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', fontWeight: 700, color: 'var(--white)', letterSpacing: '0.08em' }}>
+                      {row.size}
+                    </span>
+                  </td>
+                  {/* UK */}
+                  <td style={tdStyle}>
+                    <span style={labelStyle}>{row.uk}</span>
+                  </td>
+                  {/* EU */}
+                  <td style={tdStyle}>
+                    <span style={labelStyle}>{row.eu}</span>
+                  </td>
+                  {/* Chest */}
+                  <MeasureCell in={row.chest[0]} cm={row.chest[1]} />
+                  {/* Body Length */}
+                  <MeasureCell in={row.length[0]} cm={row.length[1]} />
+                  {/* Sleeve */}
+                  <MeasureCell in={row.sleeve[0]} cm={row.sleeve[1]} />
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Footer note */}
+        <p style={{
+          fontFamily: 'var(--font-mono)', fontSize: '0.52rem',
+          letterSpacing: '0.1em', textTransform: 'uppercase',
+          color: 'rgba(255,255,255,0.2)', lineHeight: 1.8,
+        }}>
+          Size conversion is approximate — fit may differ across styles and fabric weights.
+          {/* TODO: update measurements per-product when production samples are confirmed */}
+        </p>
+      </motion.div>
+    </motion.div>
+  )
+}
+
+const tdStyle = {
+  padding: '12px 12px',
+  borderBottom: '1px solid rgba(255,255,255,0.04)',
+  verticalAlign: 'middle',
+}
+
+const labelStyle = {
+  fontFamily: 'var(--font-mono)', fontSize: '0.65rem',
+  color: 'var(--muted)', letterSpacing: '0.05em',
+}
+
+function MeasureCell({ in: inches, cm }) {
+  return (
+    <td style={tdStyle}>
+      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.68rem', color: 'var(--white)', display: 'block', letterSpacing: '0.04em' }}>
+        {inches}
+      </span>
+      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.55rem', color: 'rgba(255,255,255,0.35)', letterSpacing: '0.04em' }}>
+        {cm}
+      </span>
+    </td>
+  )
+}
+
+// ── Product Detail page ───────────────────────────────────────────
 export default function ProductDetail() {
   const { slug } = useParams()
   const navigate = useNavigate()
@@ -23,6 +224,7 @@ export default function ProductDetail() {
   const [selectedColor, setSelectedColor] = useState(null)
   const [added, setAdded] = useState(false)
   const [sizeError, setSizeError] = useState(false)
+  const [showSizeGuide, setShowSizeGuide] = useState(false)
 
   const relatedRef = useRef(null)
   const relatedInView = useInView(relatedRef, { once: true, margin: '-80px' })
@@ -170,11 +372,23 @@ export default function ProductDetail() {
 
             {/* Size select */}
             <div style={{ marginBottom: 32 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                 <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: sizeError ? 'var(--pink)' : 'var(--muted)' }}>
                   {sizeError ? '— Select a size' : 'Size'}
                 </p>
-                <button style={{ background: 'none', border: 'none', fontFamily: 'var(--font-mono)', fontSize: '0.6rem', letterSpacing: '0.15em', color: 'var(--muted)', textDecoration: 'underline', textTransform: 'uppercase' }}>
+                <button
+                  onClick={() => setShowSizeGuide(true)}
+                  style={{
+                    background: 'none', border: 'none',
+                    fontFamily: 'var(--font-mono)', fontSize: '0.6rem',
+                    letterSpacing: '0.15em', color: 'var(--purple-pale)',
+                    textDecoration: 'underline', textDecorationColor: 'rgba(123,0,255,0.4)',
+                    textTransform: 'uppercase', transition: 'color 0.2s',
+                    cursor: 'pointer', padding: 0,
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.color = 'var(--white)'}
+                  onMouseLeave={(e) => e.currentTarget.style.color = 'var(--purple-pale)'}
+                >
                   Size Guide
                 </button>
               </div>
@@ -290,6 +504,11 @@ export default function ProductDetail() {
         )}
       </div>
       <Footer />
+
+      {/* Size Guide Modal */}
+      <AnimatePresence>
+        {showSizeGuide && <SizeGuideModal onClose={() => setShowSizeGuide(false)} />}
+      </AnimatePresence>
 
       <style>{`
         @media (max-width: 860px) {
