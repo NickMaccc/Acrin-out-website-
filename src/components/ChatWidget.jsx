@@ -62,7 +62,7 @@ export default function ChatWidget() {
 
   return (
     <>
-      {/* Floating heart button */}
+      {/* Floating heart + headset button */}
       <motion.button
         onClick={() => setOpen((v) => !v)}
         whileHover={{ scale: 1.1 }}
@@ -70,7 +70,7 @@ export default function ChatWidget() {
         aria-label={open ? 'Close chat' : 'Open chat'}
         style={{
           position: 'fixed', bottom: 28, right: 28, zIndex: 900,
-          width: 58, height: 58,
+          width: 76, height: 76,
           background: 'none', border: 'none',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           filter: 'drop-shadow(0 0 14px rgba(255,0,110,0.55)) drop-shadow(0 0 28px rgba(123,0,255,0.35))',
@@ -84,7 +84,7 @@ export default function ChatWidget() {
               animate={{ opacity: 1, rotate: 0 }}
               exit={{ opacity: 0, rotate: 90 }}
               transition={{ duration: 0.2 }}
-              style={{ fontSize: '1.5rem', color: 'var(--white)', lineHeight: 1 }}
+              style={{ fontSize: '1.8rem', color: 'var(--white)', lineHeight: 1 }}
             >
               ✕
             </motion.span>
@@ -95,7 +95,7 @@ export default function ChatWidget() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
               transition={{ duration: 0.2 }}
-              width="52" height="52" viewBox="0 0 52 52"
+              width="68" height="68" viewBox="0 0 52 52"
             >
               <defs>
                 <radialGradient id="hg" cx="40%" cy="35%">
@@ -122,6 +122,27 @@ export default function ChatWidget() {
                 <animate attributeName="r" values="24;28;24" dur="2.2s" repeatCount="indefinite" />
                 <animate attributeName="opacity" values="0.25;0;0.25" dur="2.2s" repeatCount="indefinite" />
               </circle>
+
+              {/* Headset overlay — neon-purple call-center style */}
+              {/* Headband arc over the top of the heart */}
+              <path
+                d="M 11 28 C 11 8 41 8 41 28"
+                stroke="#c084fc" strokeWidth="2.4" fill="none" strokeLinecap="round"
+              />
+              {/* Left ear cup */}
+              <rect x="5.5" y="22" width="7.5" height="12.5" rx="3.5"
+                fill="rgba(30,0,90,0.78)" stroke="#c084fc" strokeWidth="1.9" />
+              {/* Right ear cup */}
+              <rect x="39" y="22" width="7.5" height="12.5" rx="3.5"
+                fill="rgba(30,0,90,0.78)" stroke="#c084fc" strokeWidth="1.9" />
+              {/* Mic boom arm from left cup, curves down-right */}
+              <path
+                d="M 13 34 C 14 44 25 45 30.5 39"
+                stroke="#c084fc" strokeWidth="2.1" fill="none" strokeLinecap="round"
+              />
+              {/* Mic capsule at boom tip */}
+              <circle cx="31" cy="37.5" r="3"
+                fill="rgba(30,0,90,0.85)" stroke="#c084fc" strokeWidth="1.8" />
             </motion.svg>
           )}
         </AnimatePresence>
@@ -136,7 +157,7 @@ export default function ChatWidget() {
             exit={{ opacity: 0, y: 24, scale: 0.96 }}
             transition={{ duration: 0.28, ease: [0.25, 0.1, 0.25, 1] }}
             style={{
-              position: 'fixed', bottom: 96, right: 28, zIndex: 900,
+              position: 'fixed', bottom: 116, right: 28, zIndex: 900,
               width: 'min(380px, calc(100vw - 56px)',
               height: 'min(520px, calc(100vh - 140px))',
               background: 'rgba(10,10,10,0.97)',
