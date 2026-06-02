@@ -124,24 +124,24 @@ export default function ChatWidget() {
               </circle>
 
               {/* Headset overlay — neon-purple call-center style */}
-              {/* Headband arc over the top of the heart */}
+              {/* Headband arc — peaks at y≈5, above the heart's lobe tops at y≈7 */}
               <path
-                d="M 11 28 C 11 8 41 8 41 28"
+                d="M 12 19 C 12 0 40 0 40 19"
                 stroke="#c084fc" strokeWidth="2.4" fill="none" strokeLinecap="round"
               />
-              {/* Left ear cup */}
-              <rect x="5.5" y="22" width="7.5" height="12.5" rx="3.5"
+              {/* Left ear cup — upper side of heart */}
+              <rect x="5.5" y="13" width="7.5" height="12" rx="3.5"
                 fill="rgba(30,0,90,0.78)" stroke="#c084fc" strokeWidth="1.9" />
-              {/* Right ear cup */}
-              <rect x="39" y="22" width="7.5" height="12.5" rx="3.5"
+              {/* Right ear cup — upper side of heart */}
+              <rect x="39" y="13" width="7.5" height="12" rx="3.5"
                 fill="rgba(30,0,90,0.78)" stroke="#c084fc" strokeWidth="1.9" />
-              {/* Mic boom arm from left cup, curves down-right */}
+              {/* Mic boom arm from bottom of left cup, curves down-right */}
               <path
-                d="M 13 34 C 14 44 25 45 30.5 39"
+                d="M 13 25 C 14 35 24 36 29.5 30"
                 stroke="#c084fc" strokeWidth="2.1" fill="none" strokeLinecap="round"
               />
               {/* Mic capsule at boom tip */}
-              <circle cx="31" cy="37.5" r="3"
+              <circle cx="30.5" cy="29" r="3"
                 fill="rgba(30,0,90,0.85)" stroke="#c084fc" strokeWidth="1.8" />
             </motion.svg>
           )}
