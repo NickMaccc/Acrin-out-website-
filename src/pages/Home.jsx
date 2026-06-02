@@ -90,7 +90,8 @@ function HeroSection() {
                 fontSize: 'clamp(5rem, 12vw, 11rem)',
                 letterSpacing: '-0.02em', lineHeight: 0.85,
                 color: 'transparent',
-                WebkitTextStroke: '1px rgba(255,255,255,0.18)',
+                WebkitTextStroke: '1.5px rgba(160,80,255,0.92)',
+                filter: 'drop-shadow(0 0 10px rgba(123,0,255,0.5))',
               }}
             >
               ACTIN
@@ -122,8 +123,8 @@ function HeroSection() {
             transition={{ delay: 0.7 }}
             style={{
               fontFamily: 'var(--font-body)',
-              fontSize: 'clamp(0.85rem, 1.8vw, 1.05rem)',
-              color: 'var(--muted)', lineHeight: 1.6,
+              fontSize: 'clamp(1rem, 2vw, 1.15rem)',
+              color: 'rgba(255,255,255,0.65)', lineHeight: 1.6,
               marginTop: 24, marginBottom: 36,
               maxWidth: 340,
             }}
@@ -287,13 +288,13 @@ export default function Home() {
       }}>
         <motion.div
           animate={{ x: ['0%', '-50%'] }}
-          transition={{ repeat: Infinity, duration: 22, ease: 'linear' }}
-          style={{ display: 'flex', gap: 56, whiteSpace: 'nowrap', width: 'max-content' }}
+          transition={{ repeat: Infinity, duration: 28, ease: 'linear' }}
+          style={{ display: 'flex', gap: 64, whiteSpace: 'nowrap', width: 'max-content' }}
         >
           {Array(8).fill(['WEAR YOUR EMOTIONS', '✦', 'HEARTBREAK SERIES', '✦', 'LOVE NOTES SERIES', '✦']).flat().map((t, i) => (
             <span key={i} style={{
-              fontFamily: 'var(--font-mono)', fontSize: '0.65rem',
-              letterSpacing: '0.3em', textTransform: 'uppercase',
+              fontFamily: 'var(--font-mono)', fontSize: '0.85rem',
+              letterSpacing: '0.28em', textTransform: 'uppercase',
               color: t === '✦' ? 'var(--purple)' : 'var(--muted)',
             }}>{t}</span>
           ))}
